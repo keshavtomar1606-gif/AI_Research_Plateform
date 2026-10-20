@@ -24,7 +24,7 @@ This guide puts the whole project online without your laptop:
 1. Go to **https://console.groq.com** and sign up (no card needed).
 2. Open **API Keys** → **Create API Key** → copy it (it starts with `gsk_`).
 3. **Keep it secret.** Never put it in any file in the project, never commit it, never paste it in chat. You will only paste it into Render (step 4).
-4. Check the model list at https://console.groq.com/docs/models. This project uses `llama-3.1-8b-instant` by default. If that model has been retired, pick another chat model and set `AI_MODEL` in step 4.
+4. Check the model list at https://console.groq.com/docs/models. This project uses `openai/gpt-oss-20b` by default (`openai/gpt-oss-120b` gives better answers). Groq retires models over time; if chat says "model … was not found", pick a current chat model from that page and set `AI_MODEL` on Render.
 
 ## Step 2: Create a free MySQL database (Aiven)
 
@@ -89,7 +89,7 @@ git push -u origin main
    DB_PASSWORD=YOUR_AIVEN_PASSWORD
    AI_PROVIDER=groq
    AI_API_KEY=YOUR_GROQ_KEY
-   AI_MODEL=llama-3.1-8b-instant
+   AI_MODEL=openai/gpt-oss-20b
    APP_ACCESS_KEY=MAKE_UP_A_DEMO_PASSWORD
    CORS_ALLOWED_ORIGINS=http://localhost:5500
    ```
@@ -103,14 +103,14 @@ git push -u origin main
    | `DB_PASSWORD` | your Aiven password |
    | `AI_PROVIDER` | `groq` |
    | `AI_API_KEY` | your Groq key from step 1 |
-   | `AI_MODEL` | `llama-3.1-8b-instant` |
+   | `AI_MODEL` | `openai/gpt-oss-20b` |
    | `APP_ACCESS_KEY` | a demo password you make up, e.g. `research-demo-2026` |
    | `CORS_ALLOWED_ORIGINS` | leave as `http://localhost:5500` for now; you will change it in step 6 |
 
 5. Click **Create Web Service**. The first build takes about 5–10 minutes.
 6. When it says **Live**, open `https://YOUR-SERVICE-NAME.onrender.com/api/health`. You should see:
    ```json
-   {"status":"UP","database":"UP","ai":"UP","aiProvider":"groq","model":"llama-3.1-8b-instant","accessKeyRequired":true}
+   {"status":"UP","database":"UP","ai":"UP","aiProvider":"groq","model":"openai/gpt-oss-20b","accessKeyRequired":true}
    ```
    Copy your backend address (`https://YOUR-SERVICE-NAME.onrender.com`).
 
@@ -169,7 +169,7 @@ Type them **without** backticks or quotes, and replace every CAPITAL placeholder
 | `DB_PASSWORD` | your Aiven password (Aiven → Overview → Password → click the stars) |
 | `AI_PROVIDER` | `groq` |
 | `AI_API_KEY` | your Groq key (starts with `gsk_`) |
-| `AI_MODEL` | `llama-3.1-8b-instant` |
+| `AI_MODEL` | `openai/gpt-oss-20b` |
 | `APP_ACCESS_KEY` | a demo password you make up |
 | `CORS_ALLOWED_ORIGINS` | `http://localhost:5500` for now, later your Netlify address |
 
