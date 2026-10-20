@@ -13,6 +13,6 @@ class StartupCheckTest {
         assertEquals("gsk_abc", StartupCheck.clean("\"gsk_abc\""));
         assertEquals("x", StartupCheck.clean(" ' `x` ' "));
         assertEquals("pa ss", StartupCheck.clean("pa ss"));      // spaces inside a value are kept
-        assertEquals("keshu@1606", StartupCheck.clean("keshu@1606"));
+        assertEquals("demo@2026", StartupCheck.clean("demo@2026"));
     }
 }
