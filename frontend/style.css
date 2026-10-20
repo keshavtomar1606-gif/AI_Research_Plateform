@@ -1795,3 +1795,11 @@ button:disabled { cursor: not-allowed; opacity: .65; }
 @media (prefers-reduced-motion: reduce) {
   .typing span { animation: none; }
 }
+
+/* Bold text inside a chat message stays inline (only the sender name is a block title). */
+#ai-chat .msg-body strong {
+  display: inline;
+  margin: 0;
+  color: var(--ink);
+  font-size: inherit;
+}

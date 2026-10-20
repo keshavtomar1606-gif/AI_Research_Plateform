@@ -13,3 +13,6 @@ backend/error-log.txt
 
 # Private deployment notes with real values
 *.local.txt
+
+# Local backup copy (not part of the project)
+frontend/style-backup.css

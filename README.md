@@ -2,6 +2,75 @@
 
 A research-management dashboard with a **Java Spring Boot** backend, a **MySQL** database, a **local AI assistant** (Ollama, no API key needed), and a **real machine-learning workflow**: linear-regression training on CSV data, with proper train/test evaluation.
 
+**Live demo:** https://fantastic-pavlova-37ef51.netlify.app (the free backend may take about 1 minute to wake up on the first visit)
+**Presentation (Review 1):** [PDF](docs/presentation/ResearchAI_Review1.pdf) · [PPTX](docs/presentation/ResearchAI_Review1.pptx)
+
+![ResearchAI dashboard](docs/screenshots/overview.png)
+
+## Architecture
+
+```mermaid
+flowchart LR
+    UI["Frontend<br/>HTML · CSS · JavaScript<br/>(Netlify / localhost:5500)"] -- "JSON over HTTP(S)" --> API["Spring Boot REST API<br/>Java 21<br/>(Render / localhost:8080)"]
+    API -- "JPA / JDBC (SSL in cloud)" --> DB[("MySQL<br/>local or Aiven")]
+    API -- "REST" --> AI["AI model<br/>Ollama (local) / Groq (cloud)"]
+    API --> ML["ML engine<br/>linear regression in Java"]
+```
+
+Backend layers: **Controller** (HTTP + JSON) → **DTO validation** → **Service / ML** → **Repository** (Spring Data JPA) → **Entity** (MySQL table).
+
+## Database design
+
+```mermaid
+erDiagram
+    RESEARCH_PROJECT {
+        BIGINT id PK
+        VARCHAR title "NOT NULL"
+        VARCHAR description
+        VARCHAR team
+        VARCHAR status
+    }
+    DATASET {
+        BIGINT id PK
+        VARCHAR name "NOT NULL"
+        VARCHAR owner
+        VARCHAR file_name
+        VARCHAR status
+        LONGTEXT csv_content
+        VARCHAR column_names
+        INT row_count
+        DATETIME created_at
+    }
+    TRAINING_JOB {
+        BIGINT id PK
+        BIGINT dataset_id "logical link to dataset.id"
+        VARCHAR job_type "ML_TRAINING or RECORD"
+        VARCHAR status
+        INT progress
+        VARCHAR target_column
+        VARCHAR feature_columns
+        DOUBLE mae
+        DOUBLE rmse
+        DOUBLE r2
+        VARCHAR coefficients_json
+        DATETIME started_at
+        DATETIME finished_at
+    }
+    DATASET ||--o{ TRAINING_JOB : "is trained in"
+```
+
+Full schema: [database/schema.sql](database/schema.sql). `training_job.dataset_id` is a logical link without a database constraint, so a training run keeps its results even if its dataset is later deleted.
+
+## Screenshots
+
+| Model training (real metrics) | AI Assistant |
+|---|---|
+| ![Training result](docs/screenshots/training-result.png) | ![AI chat](docs/screenshots/chat.png) |
+
+| Projects (MySQL data) | Create form | Phone view |
+|---|---|---|
+| ![Projects](docs/screenshots/projects.png) | ![Modal form](docs/screenshots/modal.png) | ![Mobile](docs/screenshots/mobile-overview.png) |
+
 | Part | Technology | URL |
 |------|------------|-----|
 | Frontend | HTML, CSS, vanilla JavaScript | http://localhost:5500 |
@@ -251,7 +320,7 @@ cd backend
 mvn test
 ```
 
-There are 32 tests. They use a **temporary in-memory H2 database** and **fake AI servers** (Ollama and Groq-style), so they never touch your MySQL data and don't need Ollama or an API key. They cover:
+There are 33 tests. They use a **temporary in-memory H2 database** and **fake AI servers** (Ollama and Groq-style), so they never touch your MySQL data and don't need Ollama or an API key. They cover:
 
 - Regression maths: exact coefficient recovery, a hand-calculated example, constant/collinear feature detection.
 - Metrics: MAE, RMSE, R² checked against a published scikit-learn example.
@@ -338,11 +407,14 @@ backend/
     service/      ChatProvider: OllamaService (local) / OpenAiCompatibleService (Groq etc.), AiRateLimiter
     config/       CORS, access key, AI provider choice, global error handling
   src/main/resources/sample-data/student_performance.csv
-  src/test/       32 automated tests (H2 + fake AI servers)
+  src/test/       33 automated tests (H2 + fake AI servers)
 database/schema.sql                 ← optional manual schema
 Dockerfile                          ← used by Render (builds the backend)
 backend/Dockerfile                  ← same, for building from inside backend/
 frontend/ index.html, config.js (backend address), app.js, style.css
 scripts/ smoke-test.ps1, generate_sample_data.py
 DEPLOY.md                           ← free online deployment guide
+docs/presentation/                  ← Review 1 slides (PDF + PPTX)
+docs/screenshots/                   ← UI screenshots used in README and slides
+netlify.toml                        ← tells Netlify to publish the frontend folder
 ```
