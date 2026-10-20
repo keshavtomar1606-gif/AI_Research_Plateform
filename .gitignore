@@ -1,0 +1,12 @@
+# Build output
+backend/target/
+
+# Local secrets (database password etc.)
+backend/config/local.properties
+.env
+
+# Logs and editor files
+*.log
+backend/error-log.txt
+.vscode/
+.idea/

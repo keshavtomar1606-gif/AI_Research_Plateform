@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Research Platform</title><link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-icon">✦</div><div><strong>ResearchAI</strong><small>Research workspace</small></div></div>
+    <div class="workspace-label">WORKSPACE</div>
+    <nav id="nav">
+      <button class="nav-item active" data-view="overview">▦ <span>Overview</span></button>
+      <button class="nav-item" data-view="projects">◈ <span>Projects</span></button>
+      <button class="nav-item" data-view="datasets">▤ <span>Datasets</span></button>
+      <button class="nav-item" data-view="ai-assistant">✦ <span>AI Assistant</span></button>
+      <button class="nav-item" data-view="training">▷ <span>Model training</span></button>
+      <button class="nav-item" data-view="experiments">⌁ <span>Experiments</span></button>
+      <button class="nav-item" data-view="collaboration">♧ <span>Collaboration</span></button>
+      <button class="nav-item admin-only" data-view="users">♙ <span>User management</span></button>
+      <button class="nav-item admin-only" data-view="resources">▣ <span>Resources</span></button>
+      <button class="nav-item admin-only" data-view="usage">▥ <span>Usage monitoring</span></button>
+      <button class="nav-item" data-view="profile">⚙ <span>My profile</span></button>
+    </nav>
+    <div class="sidebar-bottom"><div class="avatar">KT</div><div><strong>Keshav Tomar</strong><small id="side-role">Researcher</small></div><span class="online-dot"></span></div>
+  </aside>
+  <main class="main">
+    <header class="topbar"><div class="crumb">Workspace <span>/</span> <b id="crumb-page">Overview</b></div>
+      <div class="top-actions"><span class="status-pill" id="backend-status" title="Backend connection status"><i></i> <span>Checking backend…</span></span>
+      <select id="role-select" aria-label="Choose demo role (not a login)" title="Demo only: switches the view, it is not authentication"><option value="researcher">Researcher view (demo)</option><option value="admin">Admin view (demo)</option></select>
+      <button class="user-avatar" title="Profile" data-go="profile">KT</button></div>
+    </header>
+    <section class="page">
+      <div class="welcome-row"><div><div class="eyebrow">AI RESEARCH & DEVELOPMENT</div><h1 id="page-title">Good morning, Keshav <span>✦</span></h1><p id="page-subtitle">Your research workspace, all in one place.</p></div><button class="primary" id="main-action">＋ New project</button></div>
+      <div id="toast" role="status"></div>
+      <div id="content"></div>
+      <footer>ResearchAI · College project <span>Built for collaborative AI research</span></footer>
+    </section>
+  </main>
+</div>
+<dialog id="modal" aria-labelledby="modal-title">
+  <form id="modal-form">
+    <div class="modal-head"><div><div class="eyebrow">WORKSPACE</div><h2 id="modal-title">Create item</h2></div><button type="button" class="close" data-close-modal aria-label="Close">×</button></div>
+    <div id="modal-fields"></div>
+    <div id="modal-error" class="form-error" role="alert" hidden></div>
+    <div class="modal-actions"><button type="button" class="secondary" data-close-modal>Cancel</button><button type="submit" class="primary" id="save-btn">Save</button></div>
+  </form>
+</dialog>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body></html>

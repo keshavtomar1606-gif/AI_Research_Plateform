@@ -1,0 +1,6 @@
+# Copy this file to "local.properties" in the same folder and put in your own MySQL password.
+# local.properties is listed in .gitignore, so your password is never committed.
+# Environment variables with the same names (e.g. $env:DB_PASSWORD) take priority over these values.
+DB_URL=jdbc:mysql://localhost:3306/ai_research_platform
+DB_USERNAME=root
+DB_PASSWORD=CHANGE_ME
