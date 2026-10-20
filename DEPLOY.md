@@ -79,7 +79,10 @@ git push -u origin main
 4. **Environment Variables:** add these. Values in CAPITALS are yours.
    **Type them without the ` marks.** The marks only show code in this guide. Replace `HOST` and `PORT` with the real values from Aiven.
 
-   Easiest: click **Add from .env**, then paste this block after filling in your values (no quotes, no spaces around `=`):
+   Easiest: click **Add from .env** and paste your settings.
+   ⚠️ **Don't paste the example below as it is.** `HOST`, `PORT` and the CAPITAL words are placeholders. Pasting them causes `Failed to parse the host:port pair 'HOST:PORT'`.
+   Tip: copy it into a private file named `render-env.local.txt` in the project folder (git ignores `*.local.txt`), fill in your real values there, then paste from that file.
+   Example (no quotes, no spaces around `=`):
    ```
    DB_URL=jdbc:mysql://HOST:PORT/defaultdb?sslMode=REQUIRED
    DB_USERNAME=avnadmin
@@ -151,6 +154,45 @@ git push -u origin main
    ```powershell
    powershell -ExecutionPolicy Bypass -File scripts\smoke-test.ps1 -BaseUrl https://YOUR-SERVICE-NAME.onrender.com/api -AccessKey YOUR_ACCESS_KEY
    ```
+
+---
+
+## Render environment variables: quick reference
+
+On **Render → your service → Environment**, there must be **exactly one row** for each key below.
+Type them **without** backticks or quotes, and replace every CAPITAL placeholder with your real value.
+
+| Key | Value |
+|-----|-------|
+| `DB_URL` | `jdbc:mysql://AIVEN_HOST:AIVEN_PORT/defaultdb?sslMode=REQUIRED` |
+| `DB_USERNAME` | `avnadmin` |
+| `DB_PASSWORD` | your Aiven password (Aiven → Overview → Password → click the stars) |
+| `AI_PROVIDER` | `groq` |
+| `AI_API_KEY` | your Groq key (starts with `gsk_`) |
+| `AI_MODEL` | `llama-3.1-8b-instant` |
+| `APP_ACCESS_KEY` | a demo password you make up |
+| `CORS_ALLOWED_ORIGINS` | `http://localhost:5500` for now, later your Netlify address |
+
+Notes:
+- `AIVEN_HOST` and `AIVEN_PORT` come from Aiven → your MySQL service → Overview → **Host** and **Port**.
+- Use `sslMode=REQUIRED` (Java style), **not** `ssl-mode=REQUIRED` from Aiven's "Service URI".
+- Never put real passwords or keys in this file; it is public on GitHub.
+
+### If the Render log says `Failed to parse the host:port pair 'HOST:PORT'`
+The backend is still reading the example value. Usually there are two `DB_URL` rows.
+1. Render → **Environment** → **Edit**.
+2. **Delete** every row that has backticks (`` `DB_URL` ``), contains `HOST`, `PORT`, `YOUR_…` or `MAKE_UP…`, or appears twice.
+3. Add the missing keys again from the table above (one row each).
+4. Click **Save changes** (or **Save, rebuild, and deploy**) and wait 3–5 minutes.
+5. Search the logs for `Caused by`. No new results means it worked; look for **Live**.
+
+### Other Render log messages
+| Log says | Fix |
+|----------|-----|
+| `lstat …/backend/backend: no such file or directory` | Settings → Build & Deploy: Root Directory **empty**, Dockerfile Path `./Dockerfile`, Docker Build Context Directory `.` |
+| `Access denied for user 'avnadmin'` | Wrong `DB_PASSWORD`. Copy it from Aiven again, with no spaces. |
+| `Communications link failure` | Check the host, the port and `?sslMode=REQUIRED` in `DB_URL` |
+| `AI_PROVIDER=groq needs an API key` | Add `AI_API_KEY` |
 
 ---
 

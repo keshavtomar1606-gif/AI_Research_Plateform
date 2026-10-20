@@ -294,6 +294,12 @@ There are 32 tests. They use a **temporary in-memory H2 database** and **fake AI
 
 ---
 
+## 9a. Online deployment (Render)
+
+See **[DEPLOY.md](DEPLOY.md)**: step-by-step setup, the exact Render environment variables, and fixes for Render errors.
+
+---
+
 ## 10. College demo script (about 7 minutes)
 
 1. **Intro (30 s):** "ResearchAI helps a student research team manage projects and datasets, train a model, and get help from an AI assistant that runs entirely on this laptop: no paid API, no data leaves the machine."

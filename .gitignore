@@ -10,3 +10,6 @@ backend/config/local.properties
 backend/error-log.txt
 .vscode/
 .idea/
+
+# Private deployment notes with real values
+*.local.txt
