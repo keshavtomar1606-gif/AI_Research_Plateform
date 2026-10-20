@@ -16,3 +16,6 @@ backend/error-log.txt
 
 # Local backup copy (not part of the project)
 frontend/style-backup.css
+
+# Office temporary lock files
+~$*
