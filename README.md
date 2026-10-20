@@ -2,6 +2,8 @@
 
 A research-management dashboard with a **Java Spring Boot** backend, a **MySQL** database, a **local AI assistant** (Ollama, no API key needed), and a **real machine-learning workflow**: linear-regression training on CSV data, with proper train/test evaluation.
 
+**Team:** Keshav Tomar (Team Leader) · Astik Sharma · Shudhanshu Kumar
+
 **Live demo:** https://fantastic-pavlova-37ef51.netlify.app (the free backend may take about 1 minute to wake up on the first visit)
 **Presentation (Review 1):** [PDF](docs/presentation/ResearchAI_Review1.pdf) · [PPTX](docs/presentation/ResearchAI_Review1.pptx)
 
