@@ -5,7 +5,7 @@ This guide puts the whole project online without your laptop:
 | Part | Free service | What it does |
 |------|--------------|--------------|
 | Frontend (HTML/CSS/JS) | **Netlify** | Hosts the website |
-| Backend (Spring Boot) | **Render** (free web service, using the `backend/Dockerfile`) | Runs the API and ML training |
+| Backend (Spring Boot) | **Render** (free web service, using the top-level `Dockerfile`) | Runs the API and ML training |
 | Database | **Aiven** free MySQL (or TiDB Cloud) | Stores projects, datasets, training jobs |
 | AI | **Groq** free API | Replaces Ollama when online |
 
@@ -68,11 +68,30 @@ git push -u origin main
 1. Go to **https://render.com** and sign up with your GitHub account.
 2. **New** → **Web Service** → connect the `AI_Research_Plateform` repository.
 3. Settings:
-   - **Root Directory:** `backend`
-   - **Language / Runtime:** `Docker` (Render finds `backend/Dockerfile`)
+   - **Region:** any; choose the one closest to you (e.g. Singapore for India), ideally near your database.
+   - **Language / Runtime:** `Docker`
+   - **Root Directory:** leave **empty**
+   - **Dockerfile Path:** `./Dockerfile` (the default; uses the `Dockerfile` in the top-level folder)
+   - **Docker Build Context Directory:** `.` (the default)
+   - Don't type `backend` in any of these fields. The top-level Dockerfile already knows where the backend is.
    - **Instance Type:** `Free`
    - **Health Check Path:** `/api/health` (under Advanced, if shown)
 4. **Environment Variables:** add these. Values in CAPITALS are yours.
+   **Type them without the ` marks.** The marks only show code in this guide. Replace `HOST` and `PORT` with the real values from Aiven.
+
+   Easiest: click **Add from .env**, then paste this block after filling in your values (no quotes, no spaces around `=`):
+   ```
+   DB_URL=jdbc:mysql://HOST:PORT/defaultdb?sslMode=REQUIRED
+   DB_USERNAME=avnadmin
+   DB_PASSWORD=YOUR_AIVEN_PASSWORD
+   AI_PROVIDER=groq
+   AI_API_KEY=YOUR_GROQ_KEY
+   AI_MODEL=llama-3.1-8b-instant
+   APP_ACCESS_KEY=MAKE_UP_A_DEMO_PASSWORD
+   CORS_ALLOWED_ORIGINS=http://localhost:5500
+   ```
+
+   The same settings as a table:
 
    | Key | Value |
    |-----|-------|
@@ -147,7 +166,8 @@ git push -u origin main
 | Chat: "model … was not found" / "rejected the request" | The model was retired. Choose a current one at console.groq.com/docs/models and update `AI_MODEL`. |
 | Chat: "free AI quota is used up" | Groq's free limit was reached. Wait a minute (or until the next day for daily limits). |
 | "Wrong access key" | Close the tab, reopen the site, and enter the correct key. |
-| Render build fails | Open the build log. Most often the Root Directory isn't `backend` or the runtime isn't `Docker`. |
+| Render build fails | Open the build log. Most often the runtime isn't `Docker`, or a Root Directory / Dockerfile setting was changed from the default. |
+| Render log: `lstat /opt/render/project/src/backend/backend: no such file or directory` | Settings → Build & Deploy: Root Directory **empty**, Dockerfile Path `./Dockerfile`, Docker Build Context Directory `.`. Click **Save changes** on each, then Manual Deploy → Deploy latest commit. |
 | Training jobs show "Interrupted because the backend restarted" | The free server went to sleep during a job. Run it again. |
 
 ## Security notes

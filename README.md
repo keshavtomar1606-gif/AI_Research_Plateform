@@ -334,7 +334,8 @@ backend/
   src/main/resources/sample-data/student_performance.csv
   src/test/       32 automated tests (H2 + fake AI servers)
 database/schema.sql                 ← optional manual schema
-backend/Dockerfile                  ← used by Render / any Docker host
+Dockerfile                          ← used by Render (builds the backend)
+backend/Dockerfile                  ← same, for building from inside backend/
 frontend/ index.html, config.js (backend address), app.js, style.css
 scripts/ smoke-test.ps1, generate_sample_data.py
 DEPLOY.md                           ← free online deployment guide

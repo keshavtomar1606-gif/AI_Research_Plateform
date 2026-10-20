@@ -1,0 +1,7 @@
+.git
+backend/target
+backend/config
+frontend
+database
+scripts
+*.log
