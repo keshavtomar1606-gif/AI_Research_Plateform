@@ -1,5 +1,6 @@
 package com.aiplatform.ml;
 
+import com.aiplatform.exception.TrainingDataException;
 import java.util.List;
 
 /**
@@ -24,7 +25,7 @@ public final class LinearRegression {
         int n = x.length, p = featureNames.size();
         if (n != y.length) throw new IllegalArgumentException("x and y must have the same number of rows.");
         if (n < p + 2) {
-            throw new IllegalArgumentException("Not enough training rows (" + n + ") for " + p
+            throw new TrainingDataException("Not enough training rows (" + n + ") for " + p
                     + " feature(s). Use more data or fewer features.");
         }
 
@@ -50,7 +51,7 @@ public final class LinearRegression {
         for (int j = 0; j < p; j++) {
             for (int k = 0; k < j; k++) a[j][k] = a[k][j];
             if (a[j][j] <= 1e-12) {
-                throw new IllegalArgumentException("Feature '" + featureNames.get(j)
+                throw new TrainingDataException("Feature '" + featureNames.get(j)
                         + "' has the same value in every training row, so it cannot be used.");
             }
         }
@@ -76,7 +77,7 @@ public final class LinearRegression {
             int pivot = col;
             for (int r = col + 1; r < p; r++) if (Math.abs(a[r][col]) > Math.abs(a[pivot][col])) pivot = r;
             if (Math.abs(a[pivot][col]) < 1e-10 * scale) {
-                throw new IllegalArgumentException("Some features are perfectly correlated (for example '"
+                throw new TrainingDataException("Some features are perfectly correlated (for example '"
                         + names.get(col) + "'), so a unique linear model does not exist. Remove a duplicate feature.");
             }
             double[] tmpRow = a[col]; a[col] = a[pivot]; a[pivot] = tmpRow;

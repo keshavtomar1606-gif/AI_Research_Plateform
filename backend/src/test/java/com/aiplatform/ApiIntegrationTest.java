@@ -337,4 +337,45 @@ class ApiIntegrationTest {
         mvc.perform(options("/api/projects").header("Origin", "http://evil.example").header("Access-Control-Request-Method", "POST"))
                 .andExpect(status().isForbidden());
     }
+
+    // ---------- Experiments (plain JDBC DAO) ----------
+
+    @Test
+    void experimentCrudThroughJdbcDao() throws Exception {
+        JsonNode created = body(mvc.perform(post("/api/experiments").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Baseline v1\",\"model\":\"Linear Regression\",\"metric\":\"R2 0.95\",\"status\":\"Completed\"}"))
+                .andExpect(status().isCreated()));
+        long id = created.get("id").asLong();
+        mvc.perform(get("/api/experiments/" + id)).andExpect(status().isOk()).andExpect(jsonPath("$.name").value("Baseline v1"));
+        mvc.perform(put("/api/experiments/" + id).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Baseline v2\",\"model\":\"Ridge\",\"status\":\"Running\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.model").value("Ridge"));
+        mvc.perform(get("/api/experiments")).andExpect(jsonPath("$[*].name", hasItem("Baseline v2")));
+        mvc.perform(delete("/api/experiments/" + id)).andExpect(status().isNoContent());
+        mvc.perform(get("/api/experiments/" + id)).andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("Experiment " + id + " not found."));
+    }
+
+    @Test
+    void experimentValidationAndBatch() throws Exception {
+        mvc.perform(post("/api/experiments").contentType(MediaType.APPLICATION_JSON).content("{\"name\":\"\",\"model\":\"x\"}"))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.error").value("Experiment name is required"));
+        mvc.perform(post("/api/experiments").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"a\",\"model\":\"b\",\"status\":\"Hacked\"}")).andExpect(status().isBadRequest());
+        mvc.perform(post("/api/experiments/batch").contentType(MediaType.APPLICATION_JSON)
+                .content("[{\"name\":\"A\",\"model\":\"m\"},{\"name\":\"B\",\"model\":\"m\"}]"))
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].status").value("Planned"));
+        mvc.perform(post("/api/experiments/batch").contentType(MediaType.APPLICATION_JSON)
+                .content("[{\"name\":\"A\",\"model\":\"m\"},{\"name\":\"\",\"model\":\"m\"}]"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void datasetPreviewAndMissingDataset() throws Exception {
+        var csv = new MockMultipartFile("file", "ok.csv", "text/csv", "a,b\n1,2\n".getBytes());
+        long id = body(mvc.perform(multipart("/api/datasets/upload").file(csv))).get("id").asLong();
+        mvc.perform(get("/api/datasets/" + id + "/preview")).andExpect(status().isOk());
+        mvc.perform(get("/api/datasets/999999/preview")).andExpect(status().isNotFound());
+    }
 }

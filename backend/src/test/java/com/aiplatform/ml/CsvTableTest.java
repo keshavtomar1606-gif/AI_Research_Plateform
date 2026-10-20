@@ -1,5 +1,6 @@
 package com.aiplatform.ml;
 
+import com.aiplatform.exception.TrainingDataException;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -25,25 +26,25 @@ class CsvTableTest {
 
     @Test
     void rejectsRowsWithWrongNumberOfValues() {
-        var e = assertThrows(IllegalArgumentException.class, () -> CsvTable.parse("a,b\n1,2\n3\n"));
+        var e = assertThrows(TrainingDataException.class, () -> CsvTable.parse("a,b\n1,2\n3\n"));
         assertTrue(e.getMessage().contains("row 2"));
     }
 
     @Test
     void rejectsDuplicateAndEmptyHeaders() {
-        assertThrows(IllegalArgumentException.class, () -> CsvTable.parse("a,a\n1,2\n"));
-        assertThrows(IllegalArgumentException.class, () -> CsvTable.parse("a,\n1,2\n"));
+        assertThrows(TrainingDataException.class, () -> CsvTable.parse("a,a\n1,2\n"));
+        assertThrows(TrainingDataException.class, () -> CsvTable.parse("a,\n1,2\n"));
     }
 
     @Test
     void rejectsEmptyAndHeaderOnlyFiles() {
-        assertThrows(IllegalArgumentException.class, () -> CsvTable.parse(""));
-        assertThrows(IllegalArgumentException.class, () -> CsvTable.parse("a,b\n"));
-        assertThrows(IllegalArgumentException.class, () -> CsvTable.parse("just one column\n1\n"));
+        assertThrows(TrainingDataException.class, () -> CsvTable.parse(""));
+        assertThrows(TrainingDataException.class, () -> CsvTable.parse("a,b\n"));
+        assertThrows(TrainingDataException.class, () -> CsvTable.parse("just one column\n1\n"));
     }
 
     @Test
     void rejectsUnclosedQuote() {
-        assertThrows(IllegalArgumentException.class, () -> CsvTable.parse("a,b\n\"1,2\n"));
+        assertThrows(TrainingDataException.class, () -> CsvTable.parse("a,b\n\"1,2\n"));
     }
 }

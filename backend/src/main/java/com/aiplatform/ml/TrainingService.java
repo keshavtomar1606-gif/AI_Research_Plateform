@@ -1,5 +1,6 @@
 package com.aiplatform.ml;
 
+import com.aiplatform.exception.TrainingDataException;
 import com.aiplatform.dto.TrainingRunRequest;
 import com.aiplatform.model.Dataset;
 import com.aiplatform.model.TrainingJob;
@@ -64,12 +65,8 @@ public class TrainingService {
         if (features.contains(target)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The target column cannot also be a feature.");
         }
-        List<String> available;
-        try {
-            available = CsvTable.parse(dataset.getCsvContent()).columns();
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
-        }
+        // A broken CSV throws TrainingDataException, which the API turns into HTTP 400.
+        List<String> available = CsvTable.parse(dataset.getCsvContent()).columns();
         for (String column : concat(features, target)) {
             if (!available.contains(column)) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Column '" + column + "' does not exist in this dataset.");
@@ -113,7 +110,7 @@ public class TrainingService {
             job = jobs.save(job);
 
             Dataset dataset = datasets.findById(job.getDatasetId())
-                    .orElseThrow(() -> new IllegalArgumentException("The dataset was deleted before training started."));
+                    .orElseThrow(() -> new TrainingDataException("The dataset was deleted before training started."));
             CsvTable table = CsvTable.parse(dataset.getCsvContent());
             job.setProgress(20);
             job = jobs.save(job);
@@ -158,7 +155,8 @@ public class TrainingService {
             job.setStatus(TrainingJob.COMPLETED);
             job.setFinishedAt(Instant.now());
             jobs.save(job);
-        } catch (IllegalArgumentException e) {
+        } catch (TrainingDataException e) {
+            // Problem with the data itself: the message is written for the user.
             fail(job, e.getMessage());
         } catch (Exception e) {
             log.error("Training job {} failed unexpectedly", jobId, e);
@@ -228,7 +226,7 @@ public class TrainingService {
             ys.add(number(row[targetIdx], target, r));
         }
         if (xs.size() < MIN_ROWS) {
-            throw new IllegalArgumentException("Only " + xs.size() + " complete rows remain after removing rows with missing values; at least "
+            throw new TrainingDataException("Only " + xs.size() + " complete rows remain after removing rows with missing values; at least "
                     + MIN_ROWS + " are needed.");
         }
         return new Prepared(xs.toArray(double[][]::new), ys.stream().mapToDouble(Double::doubleValue).toArray(), dropped);
@@ -237,9 +235,9 @@ public class TrainingService {
     static Split split(Prepared data, double testRatio, long seed, int featureCount) {
         int n = data.y().length;
         int testSize = (int) Math.round(n * testRatio);
-        if (testSize < 2) throw new IllegalArgumentException("The test set would have fewer than 2 rows. Use more data.");
+        if (testSize < 2) throw new TrainingDataException("The test set would have fewer than 2 rows. Use more data.");
         if (n - testSize < featureCount + 2) {
-            throw new IllegalArgumentException("Not enough training rows for " + featureCount + " feature(s). Use more data or fewer features.");
+            throw new TrainingDataException("Not enough training rows for " + featureCount + " feature(s). Use more data or fewer features.");
         }
         List<Integer> order = new ArrayList<>();
         for (int i = 0; i < n; i++) order.add(i);
@@ -258,7 +256,7 @@ public class TrainingService {
     private static double number(String value, String column, int rowIndex) {
         Double d = CsvTable.parseNumber(value);
         if (d == null) {
-            throw new IllegalArgumentException("Column '" + column + "' has a non-numeric value '" + abbreviate(value) + "' in data row "
+            throw new TrainingDataException("Column '" + column + "' has a non-numeric value '" + abbreviate(value) + "' in data row "
                     + (rowIndex + 1) + ". Linear regression only works with numeric columns.");
         }
         return d;

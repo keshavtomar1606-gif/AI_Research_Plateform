@@ -1803,3 +1803,10 @@ button:disabled { cursor: not-allowed; opacity: .65; }
   color: var(--ink);
   font-size: inherit;
 }
+
+/* "Download CSV" links styled like the secondary buttons */
+.download-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}

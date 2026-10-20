@@ -1,5 +1,6 @@
 package com.aiplatform.ml;
 
+import com.aiplatform.exception.TrainingDataException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -43,7 +44,7 @@ class LinearRegressionTest {
     void rejectsConstantFeature() {
         double[][] x = {{1, 5}, {2, 5}, {3, 5}, {4, 5}, {5, 5}};
         double[] y = {1, 2, 3, 4, 5};
-        var e = assertThrows(IllegalArgumentException.class, () -> LinearRegression.fit(x, y, List.of("a", "constant")));
+        var e = assertThrows(TrainingDataException.class, () -> LinearRegression.fit(x, y, List.of("a", "constant")));
         assertTrue(e.getMessage().contains("constant"));
     }
 
@@ -51,7 +52,7 @@ class LinearRegressionTest {
     void rejectsPerfectlyCorrelatedFeatures() {
         double[][] x = {{1, 2}, {2, 4}, {3, 6}, {4, 8}, {5, 10}, {6, 12}};
         double[] y = {1, 3, 2, 5, 4, 6};
-        var e = assertThrows(IllegalArgumentException.class, () -> LinearRegression.fit(x, y, List.of("a", "twice_a")));
+        var e = assertThrows(TrainingDataException.class, () -> LinearRegression.fit(x, y, List.of("a", "twice_a")));
         assertTrue(e.getMessage().contains("correlated"));
     }
 
@@ -59,6 +60,6 @@ class LinearRegressionTest {
     void rejectsTooFewRows() {
         double[][] x = {{1, 2}, {2, 1}, {3, 3}};
         double[] y = {1, 2, 3};
-        assertThrows(IllegalArgumentException.class, () -> LinearRegression.fit(x, y, List.of("a", "b")));
+        assertThrows(TrainingDataException.class, () -> LinearRegression.fit(x, y, List.of("a", "b")));
     }
 }

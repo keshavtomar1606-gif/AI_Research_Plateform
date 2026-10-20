@@ -21,13 +21,12 @@ const $$ = (s) => [...document.querySelectorAll(s)];
 // Backend address. Set in config.js (loaded before this file); falls back to the local backend.
 const API_BASE = window.RESEARCHAI_API_BASE || "http://localhost:8080/api";
 
-// Projects, datasets and training jobs come from MySQL through the Spring Boot API.
+// Base address of the CSV downloads served by the backend's ExportServlet (/export/*).
+const EXPORT_BASE = API_BASE.replace(/\/api\/?$/, "") + "/export/";
+
+// Projects, datasets, training jobs and experiments come from MySQL through the Spring Boot API.
 // The sections below are DEMO data kept only in this browser's localStorage.
 const demoDefaults = {
-    experiments: [
-        { id: 1, name: "Baseline v1", model: "ResNet-18", metric: "91.2% accuracy", status: "Completed" },
-        { id: 2, name: "Learning rate sweep", model: "ResNet-18", metric: "In progress", status: "Running" },
-    ],
     collaboration: [
         { id: 1, project: "Computer Vision for Crop Health", members: "Keshav, Aditi", status: "Active" },
         { id: 2, project: "Efficient LLM Evaluation", members: "Research Group A", status: "Invited" },
@@ -50,8 +49,8 @@ const demoDefaults = {
         { id: 3, name: "CPU Compute Pool", type: "CPU instance", capacity: "16 vCPU", usage: 28, status: "Available" },
     ],
 };
-const BACKEND_KINDS = ["projects", "datasets", "training"];
-let db = { projects: [], datasets: [], training: [] };
+const BACKEND_KINDS = ["projects", "datasets", "training", "experiments"];
+let db = { projects: [], datasets: [], training: [], experiments: [] };
 const backend = {
     checked: false,
     online: false,
@@ -174,10 +173,11 @@ async function refreshBackend() {
     }, 4000);
     try {
         const health = await api("/health", {}, 100000);
-        const [projects, datasets, training] = await Promise.all([
+        const [projects, datasets, training, experiments] = await Promise.all([
             api("/projects"),
             api("/datasets"),
             api("/training"),
+            api("/experiments"),
         ]);
         Object.assign(backend, {
             online: true,
@@ -191,11 +191,13 @@ async function refreshBackend() {
         db.projects = projects;
         db.datasets = datasets;
         db.training = training;
+        db.experiments = experiments;
     } catch (error) {
         Object.assign(backend, { online: false, error: error.message });
         db.projects = [];
         db.datasets = [];
         db.training = [];
+        db.experiments = [];
     }
     clearTimeout(slow);
     backend.checked = true;
@@ -389,22 +391,28 @@ function renderExperiments() {
                 runs,
                 "No training runs yet. Open Model training to run one.",
             ),
+            downloadButton("training-results.csv"),
         ) +
         panel(
             "Experiment notes",
-            "Manually logged notes about other experiments",
-            demoNote() +
-                table(
-                    ["EXPERIMENT", "MODEL", "METRIC / RESULT", "STATUS", ""],
-                    db.experiments.map(
-                        (e) =>
-                            `<tr><td>${rowTitle(e.name)}</td><td>${esc(e.model)}</td><td>${esc(e.metric)}</td><td>${tag(e.status)}</td><td><button class="table-actions" data-delete="experiments" data-id="${e.id}">Delete</button></td></tr>`,
-                    ),
+            "Manually logged notes about other experiments (saved in MySQL with plain JDBC)",
+            table(
+                ["EXPERIMENT", "MODEL", "METRIC / RESULT", "STATUS", "ACTIONS"],
+                db.experiments.map(
+                    (e) =>
+                        `<tr><td>${rowTitle(e.name)}</td><td>${esc(e.model)}</td><td>${esc(e.metric || "—")}</td><td>${tag(e.status)}</td>${rowActions("experiments", e.id, true)}</tr>`,
                 ),
-            `<button class="primary" data-add="experiments">＋ Log experiment</button>`,
+                "No experiment notes yet. Click “Log experiment” to add one.",
+            ),
+            `<div class="button-row">${downloadButton("experiments.csv")}<button class="primary" data-add="experiments">＋ Log experiment</button></div>`,
         )
     );
 }
+/** Link to a CSV file produced by the backend's ExportServlet. */
+function downloadButton(file) {
+    return `<a class="secondary download-link" href="${EXPORT_BASE + file}" download>⬇ Download CSV</a>`;
+}
+
 function renderCollaboration() {
     return panel(
         "Collaborative projects",
@@ -1170,11 +1178,12 @@ const configs = {
     },
     experiments: {
         title: "Log experiment",
+        editTitle: "Edit experiment",
         fields: [
             ["name", "Experiment name", "text", true],
             ["model", "Model name", "text", true],
             ["metric", "Result / performance metric", "text", true],
-            ["status", "Status", "select", true, ["Completed", "Running", "Failed"]],
+            ["status", "Status", "select", true, ["Completed", "Running", "Planned", "Failed"]],
         ],
     },
     collaboration: {
@@ -1316,6 +1325,15 @@ async function saveItem(key, editId, form) {
         replaceOrAdd("training", saved);
         return "External job recorded (no training was run).";
     }
+    if (key === "experiments") {
+        const body = JSON.stringify({ name: obj.name, model: obj.model, metric: obj.metric || "", status: obj.status });
+        const saved = await api(editing ? `/experiments/${editId}` : "/experiments", {
+            method: editing ? "PUT" : "POST",
+            body,
+        });
+        replaceOrAdd("experiments", saved);
+        return editing ? "Experiment updated in the database." : "Experiment saved to the database.";
+    }
 
     // Demo-only sections, stored in this browser.
     obj.id = Math.max(0, ...db[key].map((x) => Number(x.id) || 0)) + 1;
@@ -1340,7 +1358,7 @@ async function deleteItem(key, id) {
     if (!confirm("Delete this item?")) return;
     if (BACKEND_KINDS.includes(key)) {
         const path =
-            { projects: "/projects/", datasets: "/datasets/", training: "/training/" }[key] + encodeURIComponent(id);
+            { projects: "/projects/", datasets: "/datasets/", training: "/training/", experiments: "/experiments/" }[key] + encodeURIComponent(id);
         try {
             await api(path, { method: "DELETE" });
         } catch (error) {

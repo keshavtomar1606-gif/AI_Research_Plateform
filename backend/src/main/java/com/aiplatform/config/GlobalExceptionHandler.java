@@ -1,5 +1,6 @@
 package com.aiplatform.config;
 
+import com.aiplatform.exception.ResearchAiException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -45,6 +46,13 @@ public class GlobalExceptionHandler {
         return response;
     }
 
+    /** Validation of method parameters, e.g. each item of a list in a request body. */
+    @ExceptionHandler({org.springframework.web.method.annotation.HandlerMethodValidationException.class,
+            jakarta.validation.ConstraintViolationException.class})
+    ResponseEntity<Map<String, Object>> parameterValidation(Exception e) {
+        return body(HttpStatus.BAD_REQUEST, "Some fields are missing or invalid. Check the values and try again.");
+    }
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     ResponseEntity<Map<String, Object>> unreadable(HttpMessageNotReadableException e) {
         return body(HttpStatus.BAD_REQUEST, "Request body is missing or is not valid JSON.");
@@ -59,6 +67,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     ResponseEntity<Map<String, Object>> tooLarge(MaxUploadSizeExceededException e) {
         return body(HttpStatus.PAYLOAD_TOO_LARGE, "File is too large (maximum 2 MB).");
+    }
+
+    /** One handler for all of the application's own exceptions: each subclass supplies its own status. */
+    @ExceptionHandler(ResearchAiException.class)
+    ResponseEntity<Map<String, Object>> application(ResearchAiException e) {
+        if (e.isServerError()) log.error("Request failed", e);
+        return body(e.status(), e.getMessage());
     }
 
     @ExceptionHandler(ResponseStatusException.class)

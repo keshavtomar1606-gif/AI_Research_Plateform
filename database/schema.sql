@@ -58,3 +58,14 @@ CREATE TABLE IF NOT EXISTS training_job (
     finished_at       DATETIME(6),
     PRIMARY KEY (id)
 );
+
+-- Experiment notes. Accessed with plain JDBC (JdbcExperimentDao), which also creates this table on startup.
+CREATE TABLE IF NOT EXISTS experiment (
+    id         BIGINT       NOT NULL AUTO_INCREMENT,
+    name       VARCHAR(200) NOT NULL,
+    model      VARCHAR(200) NOT NULL,
+    metric     VARCHAR(255),
+    status     VARCHAR(30)  NOT NULL,   -- Planned, Running, Completed, Failed
+    created_at DATETIME(6)  NOT NULL,
+    PRIMARY KEY (id)
+);

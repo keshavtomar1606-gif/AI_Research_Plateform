@@ -3,6 +3,7 @@ package com.aiplatform.controller;
 import com.aiplatform.dto.DatasetPreview;
 import com.aiplatform.dto.DatasetRequest;
 import com.aiplatform.dto.DatasetSummary;
+import com.aiplatform.exception.TrainingDataException;
 import com.aiplatform.ml.CsvTable;
 import com.aiplatform.model.Dataset;
 import com.aiplatform.repository.DatasetRepository;
@@ -118,8 +119,8 @@ public class DatasetController {
         CsvTable table;
         try {
             table = CsvTable.parse(text);
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid CSV: " + e.getMessage());
+        } catch (TrainingDataException e) {
+            throw new TrainingDataException("Invalid CSV: " + e.getMessage());
         }
         String columns = String.join("\t", table.columns());
         if (columns.length() > 2000) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Column names are too long.");
