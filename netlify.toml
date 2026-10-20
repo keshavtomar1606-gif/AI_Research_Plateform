@@ -1,0 +1,5 @@
+# Tells Netlify to publish the website from the "frontend" folder (no build step needed).
+# In Netlify's settings keep "Base directory" EMPTY so this file is found.
+[build]
+  publish = "frontend"
+  command = ""
